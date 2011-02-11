@@ -1,5 +1,6 @@
-function HeartRate(maxFPS) {
-  this.maxFPS           = maxFPS;
+function HeartRate(options) {
+  this.maxFPS           = options && options.maxFPS || 50;
+  this.path             = options && options.path || "./heartrate";
   this.frameRate        = 0;
   this.frameCount       = 0;
   this.framesPerSecond  = 0;
@@ -7,14 +8,14 @@ function HeartRate(maxFPS) {
   this.lastUpdate       = (new Date()).getTime() / 1000;
   
   // Background template
-  this.bgImage = new Image(), this.bgImage.src = "heartrate/images/bg.png";
+  this.bgImage = new Image(), this.bgImage.src = this.path + "/images/bg.png";
   
   this.hearts = [];
   
   for (var i = 0; i < 31; i ++) {
     var prefix = i < 10 ? "spin000" : "spin00"; 
     this.hearts.push(new Image());
-    this.hearts[i].src = "heartrate/images/" + prefix + i + ".png";
+    this.hearts[i].src = this.path + "/images/" + prefix + i + ".png";
   }
   
   // Text color
