@@ -3,21 +3,18 @@ HeartRate (fps monitor for HTML5 canvas demos)
          Author: Corban Brook @corban
     3D Modeling: Tomasz Dysinkski @bunnybones
 
+View this Live Demo: http://weare.buildingsky.net/flocking/flocking.html
 
-HeartRate is a cute fps calculator and monitor you can 
-add to your HTML5 Canvas demos. The idea was taken from 
-the wonderful @mrdoob (http://mrdoob.com/) who always 
-puts a fancy fps meter on all of his demos. I noticed 
-some people started using his meter on their demos too. 
-I thought why not make my own and make it easy to add to
-other projects.
+HeartRate is a cute fps calculator and monitor you can add to your HTML5 Canvas
+demos. The idea was taken from the wonderful @mrdoob (http://mrdoob.com/) who
+always puts a fancy fps meter on all of his demos. I noticed some people
+started using his meter on their demos too.  I thought why not make my own and
+make it easy to add to other projects.
 
-After showing Tomasz my initial design he offered to
-donate 20 mins of his time and quickly modelled a 3d 
-rotating heart. I think it looks great. Thanks man!
+After showing Tomasz my initial design he offered to donate 20 mins of his time
+and quickly modelled a 3d rotating heart. I think it looks great. Thanks man!
 
-Using HeartRate is easy, simply add it to the draw loop
-you wish to monitor.
+Using HeartRate is easy, simply add it to the draw loop you wish to monitor.
 
   var FPS = 50;
 
