@@ -24,9 +24,7 @@
           height,
           mouseX = 0, 
           mouseY = 0,
-          frameCount = 0,
-          targetFrameRate = 50,
-          fps = new HeartRate({ maxFPS: targetFrameRate, path: "../" });
+          FPS = 50;
   
       document.addEventListener("DOMContentLoaded", init, false);
 
@@ -43,16 +41,14 @@
           mouseX = event.clientX, mouseY = event.clientY;
         }, false);
 
+        window.heartRate = new HeartRate({ context: ctx, maxFPS: FPS, path: "../" });
+
         setup();
-        window.setInterval(redraw, 1000 / targetFrameRate);
+        window.setInterval(redraw, 1000 / FPS);
       }
               
       function redraw() {
-        fps.update();
-        
         draw();
-        
-        frameCount++;
       }
       
       function line(x1, y1, x2, y2) {
@@ -96,7 +92,8 @@
         
         flock.run();
         
-        fps.render(2, 2);
+        heartRate.monitor(2, 2);
+
         fill(40, 40, 40);
         ctx.fillText(flock.birds.length + " particles", 730, 14);
       }
@@ -215,7 +212,7 @@
         
         var neighborDist = 50;
         
-        for(var i = frameCount % skip; i < birds.length; i += skip) {
+        for(var i = heartRate.frameCount % skip; i < birds.length; i += skip) {
           var d = V3.distance(this.loc, birds[i].loc);
           if (d > 0 && d < desiredSeparation) {
             V3.sub(this.loc, birds[i].loc, diff);
@@ -260,7 +257,7 @@
         var diff = V3.$();
 
     
-        for(var i = frameCount % skip; i < birds.length; i += skip) {
+        for(var i = heartRate.frameCount % skip; i < birds.length; i += skip) {
           var d = V3.distance(this.loc, birds[i].loc);
           
           if (d > 0 && d < desiredSeparation) {
@@ -284,7 +281,7 @@
         var sum = V3.$(0, 0, 0);
         var count = 0;
         
-        for(var i = frameCount % skip; i < birds.length; i+= skip) {
+        for(var i = heartRate.frameCount % skip; i < birds.length; i+= skip) {
           var d = V3.distance(this.loc, birds[i].loc);
           
           if (d > 0 && d < neighborDist) {
@@ -307,7 +304,7 @@
         
         var count = 0;
         
-        for (var i = frameCount % skip; i < birds.length; i+= skip) {
+        for (var i = heartRate.frameCount % skip; i < birds.length; i+= skip) {
           var d = V3.distance(this.loc, birds[i].loc);
           
           if (d > 0 && d < neighborDist) {
