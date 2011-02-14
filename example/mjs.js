@@ -285,6 +285,14 @@ V3.distance = function V3_distance(a, b) {
   return Math.sqrt(dx * dx + dy * dy + dz * dz);
 };
 
+V3.distanceSquared = function V3_distanceSquared(a, b) {
+  var dx = a[0] - b[0],
+      dy = a[1] - b[1],
+      dz = a[2] - b[2];
+      
+  return dx * dx + dy * dy + dz * dz;
+};
+
 /*
  * Function: V3.length
  *

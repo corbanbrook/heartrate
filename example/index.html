@@ -24,9 +24,11 @@
           height,
           mouseX = 0, 
           mouseY = 0,
-          FPS = 50;
+          FPS = 100;
   
       document.addEventListener("DOMContentLoaded", init, false);
+
+      var requestFrame = function() {};
 
       /* The init function creates a 2d context, runs setup and starts draw loop */
       function init() {
@@ -44,17 +46,26 @@
         window.heartRate = new HeartRate({ context: ctx, maxFPS: FPS, path: "../" });
 
         setup();
-        window.setInterval(redraw, 1000 / FPS);
+        
+        function redraw() {
+          draw();
+          requestFrame();
+        }
+
+        //if (typeof window.mozRequestAnimationFrame === "function") {
+        //  (requestFrame = function() { window.mozRequestAnimationFrame(redraw); })();
+        //} else if (typeof window.webkitRequestAnimationFrame === "function") {
+        //  (requestFrame = function() { window.webkitRequestAnimationFrame(redraw); })();
+        //} else {
+          window.setInterval(redraw, 1000 / FPS);
+        //} 
       }
-              
-      function redraw() {
-        draw();
-      }
+
       
       function line(x1, y1, x2, y2) {
         ctx.beginPath();
-        ctx.moveTo(x1 || 0, y1 || 0);
-        ctx.lineTo(x2 || 0, y2 || 0);
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
         ctx.stroke();
         ctx.closePath();
       }
@@ -137,21 +148,53 @@
       };
 
       Bird.prototype.flock = function(birds) {
-        /*
-        var sep = this.separate(birds);
-        var ali = this.align(birds);
-        var coh = this.cohesion(birds);
-    
-        V3.scale(sep, 2.0, sep);
-        V3.scale(ali, 1.0, ali);
-        V3.scale(coh, 1.0, coh);
+        var separation = V3.$(0, 0, 0);
+        var alignment = V3.$(0, 0, 0);
+        var cohesion = V3.$(0, 0, 0);
         
-        V3.add(this.acc, sep, this.acc);
-        V3.add(this.acc, ali, this.acc);
-        V3.add(this.acc, coh, this.acc);
-        */
-        this.behavior(birds);
-        //V3.add(this.acc, behave, this.acc);
+        var sCount = 0, count = 0;
+        var diff = V3.$();
+        
+        var neighborDistance = 2500; // 50 squared
+        var desiredSeparation = 625; // 25 squared
+        
+        
+        for(var i = heartRate.frameCount % skip, len = birds.length; i < len; i += skip) {
+          var d = V3.distanceSquared(this.loc, birds[i].loc);
+          if (d > 0  && d < desiredSeparation) {
+            V3.sub(this.loc, birds[i].loc, diff);
+            V3.normalize(diff, diff);
+            V3.scale(diff, 1/(d/10), diff);
+            V3.add(separation, diff, separation);
+            sCount++;
+          }
+          
+          if (d > 0 && d < neighborDistance) {
+            V3.add(alignment, birds[i].vel, alignment);
+            
+            V3.add(cohesion, birds[i].loc, cohesion);
+            count++;
+          }
+          
+        }
+        
+        if (sCount > 0) {
+          V3.scale(separation, 1/sCount, separation);
+        }
+        
+        if (count > 0) {
+          V3.scale(alignment, 1/count, alignment);
+          V3.limit(alignment, this.maxForce, alignment);
+          
+          V3.scale(cohesion, 1/count, cohesion);
+          cohesion = this.steer(cohesion, false);
+        }
+        
+        V3.scale(separation, 2.0, separation); // weight separation
+        
+        V3.add(this.acc, separation, this.acc);
+        V3.add(this.acc, alignment, this.acc);
+        V3.add(this.acc, cohesion, this.acc);
       };
   
       Bird.prototype.update = function() {
@@ -200,134 +243,14 @@
         
         return steer;
       };
-      
-      Bird.prototype.behavior = function(birds) {
-        var desiredSeparation = 25;
-        var sep = V3.$(0, 0, 0);
-        var ali = V3.$(0, 0, 0);
-        var coh = V3.$(0, 0, 0);
-        
-        var sCount = 0, count = 0;
-        var diff = V3.$();
-        
-        var neighborDist = 50;
-        
-        for(var i = heartRate.frameCount % skip; i < birds.length; i += skip) {
-          var d = V3.distance(this.loc, birds[i].loc);
-          if (d > 0 && d < desiredSeparation) {
-            V3.sub(this.loc, birds[i].loc, diff);
-            V3.normalize(diff, diff);
-            V3.scale(diff, 1/d, diff);
-            V3.add(sep, diff, sep);
-            sCount++;
-          }
-          
-          if (d > 0 && d < neighborDist) {
-            V3.add(ali, birds[i].vel, ali);
-            
-            V3.add(coh, birds[i].loc, coh);
-            count++;
-          }
-          
-        }
-        
-        if (sCount > 0) {
-          V3.scale(sep, 1/sCount, sep);
-        }
-        
-        if (count > 0) {
-          V3.scale(ali, 1/count, ali);
-          V3.limit(ali, this.maxForce, ali);
-          
-          V3.scale(coh, 1/count, coh);
-          coh = this.steer(coh, false);
-        }
-        
-        V3.scale(sep, 2.0, sep); // weight separation
-        
-        V3.add(this.acc, sep, this.acc);
-        V3.add(this.acc, ali, this.acc);
-        V3.add(this.acc, coh, this.acc); 
-      }
-  
-      Bird.prototype.separate = function(birds) {
-        var desiredSeparation = 25;
-        var sum = V3.$(0, 0, 0);
-        var count = 0;
-        var diff = V3.$();
-
-    
-        for(var i = heartRate.frameCount % skip; i < birds.length; i += skip) {
-          var d = V3.distance(this.loc, birds[i].loc);
-          
-          if (d > 0 && d < desiredSeparation) {
-            V3.sub(this.loc, birds[i].loc, diff);
-            V3.normalize(diff, diff);
-            V3.scale(diff, 1/d, diff);
-            V3.add(sum, diff, sum);
-            count++;
-          }
-        }
-        
-        if (count > 0) {
-          V3.scale(sum, 1/count, sum);
-        }
-        
-        return sum;
-      };
-  
-      Bird.prototype.align = function(birds) {
-        var neighborDist = 50;
-        var sum = V3.$(0, 0, 0);
-        var count = 0;
-        
-        for(var i = heartRate.frameCount % skip; i < birds.length; i+= skip) {
-          var d = V3.distance(this.loc, birds[i].loc);
-          
-          if (d > 0 && d < neighborDist) {
-            V3.add(sum, birds[i].vel, sum);
-            count++;
-          }
-        }
-        
-        if (count > 0) {
-          V3.scale(sum, 1/count, sum);
-          V3.limit(sum, this.maxForce, sum);
-        }
-        
-        return sum;
-      };
-  
-      Bird.prototype.cohesion = function(birds) {
-        var neighborDist = 50;
-        var sum = V3.$(0, 0, 0);
-        
-        var count = 0;
-        
-        for (var i = heartRate.frameCount % skip; i < birds.length; i+= skip) {
-          var d = V3.distance(this.loc, birds[i].loc);
-          
-          if (d > 0 && d < neighborDist) {
-            V3.add(sum, birds[i].loc, sum);
-            count++;
-          }
-        }
-        
-        if (count > 0) {
-          V3.scale(sum, 1/count, sum);
-          return this.steer(sum, false);
-        }
-        
-        return sum;
-      };
-  
   
       Bird.prototype.borders = function() {
         var r = this.r, loc = this.loc;
-        if (loc[0] < -r) loc[0] = width + r;
-        if (loc[1] < -r) loc[1] = height + r;
-        if (loc[0] > width + r) loc[0] = -r;
-        if (loc[1] > height + r) loc[1] = -r;
+
+        if (loc[0] < -r)         { loc[0] = width + r; }
+        if (loc[1] < -r)         { loc[1] = height + r; }
+        if (loc[0] > width + r)  { loc[0] = -r; }
+        if (loc[1] > height + r) { loc[1] = -r; }
       };
   
       Bird.prototype.render = function() {

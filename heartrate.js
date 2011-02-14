@@ -15,7 +15,7 @@ function HeartRate(options) {
     
     this.hearts = [];
     
-    for (var i = 0; i < 31; i ++) {
+    for (var i = 0; i < 61; i ++) {
       var prefix = i < 10 ? "spin000" : "spin00"; 
       this.hearts.push(new Image());
       this.hearts[i].src = this.path + "/images/" + prefix + i + ".png";
@@ -29,15 +29,15 @@ function HeartRate(options) {
   }
 }
 
-HeartRate.prototype.update = function() {
-  var frameTime = (new Date()).getTime() / 1000;
+HeartRate.prototype.calculate = function() {
+  var frameTime = (new Date()).getTime();
   
-  if (frameTime - this.lastUpdate > 1) {
-    this.frameRate = this.framesPerSecond / (frameTime - this.lastUpdate);
+  if (frameTime - this.lastUpdate > 1000) { // update FPS every 1000 ms
+    this.frameRate = this.framesPerSecond / (frameTime - this.lastUpdate) * 1000;
     this.lastUpdate = frameTime;
 
+    this.timeline.shift();
     this.timeline.push(this.frameRate);
-    this.timeline = this.timeline.slice(1);
     
     this.framesPerSecond = 0;
   } else {
@@ -50,8 +50,8 @@ HeartRate.prototype.update = function() {
 
 // This method calculates FPS and Renders the monitor
 HeartRate.prototype.monitor = function(x, y) {
-  // only update if update has not already been called somewhere else
-  !this.updated && this.update(), this.updated = false;
+  // only calculate if calculate has not already been called somewhere else
+  !this.updated && this.calculate(), this.updated = false;
   
   var ctx = this.context;
 
@@ -63,7 +63,7 @@ HeartRate.prototype.monitor = function(x, y) {
       
       // Background
       ctx.drawImage(this.bgImage, 0, 0);
-      ctx.drawImage(this.hearts[this.frameCount % 30], 9, 6, 20, 18);
+      ctx.drawImage(this.hearts[this.frameCount % this.hearts.length], 9, 6, 20, 18);
       
       // Line graph
       ctx.strokeStyle = this.graphColor;
