@@ -11,21 +11,25 @@ function HeartRate(options) {
 
   if (this.context) {
     // Background template
-    this.bgImage = new Image(), this.bgImage.src = this.path + "/images/bg.png";
+    this.bgImage        = new Image(), this.bgImage.src = this.path + "/images/bg.png";
     
-    this.hearts = [];
+    // Sprite strip
+    this.sprites        = new Image();
+    this.sprites.src    = this.path + "/images/spritestrip.png";
+    this.spriteCount    = 61;
+    this.spriteWidth    = 20;
+    this.spriteHeight   = 18;
+    this.spritesReady   = false;
     
-    for (var i = 0; i < 61; i ++) {
-      var prefix = i < 10 ? "spin000" : "spin00"; 
-      this.hearts.push(new Image());
-      this.hearts[i].src = this.path + "/images/" + prefix + i + ".png";
-    }
+    this.sprites.onload = (function(heartRate) {
+      return function() { heartRate.spritesReady = true; };
+    }(this));
     
     // Text color
-    this.textColor = "rgba(100, 64, 64, 1)";
+    this.textColor      = "rgba(100, 64, 64, 1)";
     
-    // Graph color
-    this.graphColor = "rgba(200, 64, 80, 1)";
+    // Graph plot color
+    this.plotColor     = "rgba(200, 64, 80, 1)";
   }
 }
 
@@ -55,24 +59,26 @@ HeartRate.prototype.monitor = function(x, y) {
   
   var ctx = this.context;
 
-  if (ctx) {
-    var scaleX = 4;
+  if (ctx && this.spritesReady) {
+    var plotScale = 4;
+    var spriteWidth = this.spriteWidth;
+    var spriteHeight = this.spriteHeight;
     
     ctx.save();
       ctx.translate(x, y);
       
       // Background
       ctx.drawImage(this.bgImage, 0, 0);
-      ctx.drawImage(this.hearts[this.frameCount % this.hearts.length], 9, 6, 20, 18);
+      ctx.drawImage(this.sprites, (this.frameCount % this.spriteCount) * spriteWidth, 0, spriteWidth, spriteHeight, 9, 6, spriteWidth, spriteHeight);
       
       // Line graph
-      ctx.strokeStyle = this.graphColor;
+      ctx.strokeStyle = this.plotColor;
       
       for (var i = 0, len = this.timeline.length - 1; i < len; i++) {
         var plot1 = 25 - this.timeline[i] / this.maxFPS * 20, 
             plot2 = 25 - this.timeline[i+1] / this.maxFPS * 20;
                         
-        isNaN(plot1) || line(i * scaleX + 64, plot1, (i+1) * scaleX + 64, plot2);
+        isNaN(plot1) || line(i * plotScale + 64, plot1, (i+1) * plotScale + 64, plot2);
       }
     
       // Text

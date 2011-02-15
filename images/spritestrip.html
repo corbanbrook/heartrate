@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--
+
+      Canvas Sprite strip generator
+      by Corban Brook
+
+      This utilizes the HTML5 canvas api to easily generate a sprite strip 
+
+    -->
+    
+    <title>Sprite Strip Generator</title>
+    
+    <script type="text/javascript">
+      document.addEventListener("DOMContentLoaded", init, false);
+
+      function init() {
+        strip = new SpriteStrip({width: 32, height: 32, scaleX: 20, scaleY: 18, size: 61, prefix: "spin", extension: ".png"});
+      }
+
+      function SpriteStrip(options) {
+        this.canvas = document.createElement('canvas');
+        this.path = options.path || "./";
+        this.prefix = options.prefix || "";
+        this.size = options.size;
+        this.extension = options.extension || ".png";
+        this.width = options.width;
+        this.height = options.height;
+        this.scaleX = options.scaleX;
+        this.scaleY = options.scaleY;
+        this.images = [];
+
+        this.canvas.width = (this.scaleX || this.width) * this.size;
+        this.canvas.height = (this.scaleY || this.height);
+        this.context = this.canvas.getContext("2d");
+        this.context.fillStyle = "rgba(0, 0, 0, 0)";
+        this.context.fillRect(0, 0, this.width * this.size, this.height);
+
+        for (var i = 0; i < options.size; i ++) {
+          var prefix = this.prefix + (i < 10 ? "000" : "00");
+          this.images.push(new Image());
+          this.images[i].src = this.path + prefix + i + this.extension;
+
+          if (this.scaleX && this.scaleY) {
+            this.context.drawImage(this.images[i], i * this.scaleX, 0, this.scaleX, this.scaleY);
+          } else {
+            this.context.drawImage(this.images[i], i * this.width, 0);
+          }
+        }
+
+        document.documentElement.appendChild(this.canvas);
+      }
+    </script>
+  </head>
+  <body>
+  </body>
+</html>

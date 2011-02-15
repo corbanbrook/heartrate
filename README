@@ -23,7 +23,7 @@ Using HeartRate is easy, simply add it to the draw loop you wish to monitor.
   window.setInterval(draw, 1000/FPS);
   
   function draw() {
-    heartRate.monitor(10, 10); // renders HeartRate monitor on canvas x, y position
+    heartRate.monitor(10, 10); // calculates FPS and renders HeartRate monitor on canvas x, y position
 
     //..
   }
@@ -37,7 +37,7 @@ If you wish you can use HeartRate without canvas to simply calculate fps and fra
   window.setInterval(draw, 1000/FPS);
   
   function draw() {
-    heartRate.update(); // renders HeartRate monitor on canvas x, y position
+    heartRate.calculate(); // calculates FPS in headless mode
     
     console.log(heartRate.frameRate + " " + heartRate.frameCount);
 
