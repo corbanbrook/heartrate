@@ -1,18 +1,31 @@
-HeartRate (fps monitor for HTML5 canvas demos) 
+            HeartRate (an fps monitor for HTML5 canvas demos) 
 
-         Author: Corban Brook @corban
-    3D Modeling: Tomasz Dysinkski @bunnybones
+                      Author: Corban Brook @corban
+                3D Modelling: Tomasz Dysinkski @bunnybones
 
-View this Live Demo: http://weare.buildingsky.net/flocking/flocking.html
 
-HeartRate is a cute fps calculator and monitor you can add to your HTML5 Canvas
-demos. The idea was taken from the wonderful @mrdoob (http://mrdoob.com/) who
-always puts a fancy fps meter on all of his demos. I noticed some people
-started using his meter on their demos too.  I thought why not make my own and
-make it easy to add to other projects.
+View a LIVE Demo: http://weare.buildingsky.net/heartrate/example/index.html
 
-After showing Tomasz my initial design he offered to donate 20 mins of his time
-and quickly modelled a 3d rotating heart. I think it looks great. Thanks man!
+HeartRate is a cute fps calculator and monitor you can *EASILY* add to your
+HTML5 Canvas demos. HeartRate intends to be aesthetically rich and customizable
+yet light on CPU cycles. It is composed of 3 parts: an animated icon, fps text
+display, and a line graph.
+
+The idea was taken from the wonderful @mrdoob (http://mrdoob.com/) who puts a
+fancy fps meter on all of his demos. I noticed two things, the fancy meter
+seemed to add a lot of aesthetic value to the demos and some people were
+starting to use his meter on their demos too. So why not contribute another
+fancy meter to the HTML5 demoscene?
+
+
+THANKS 
+
+After showing Tomasz Dysinkski my initial design he offered to donate 20 mins
+of his time and quickly modelled up a 3d rotating heart. I think it looks
+great, Thank you!
+
+
+USAGE
 
 Using HeartRate is easy, simply add it to the draw loop you wish to monitor.
 
@@ -44,3 +57,25 @@ If you wish you can use HeartRate without canvas to simply calculate fps and fra
     //..
   }
 
+
+CUTOMIZATION
+
+Customizing the theme of HeartRate is dead simple. HeartRate loads 2 images:
+bg.png and spritestrip.png, they along with spritestrip.html (a sprite strip
+generator) can be found in the heartrate/images/ directory. You can swap out
+these images with something of your choosing.
+
+spritestrip.html is a simple generator script which loads, scales and draws 
+multiple images into a canvas element, which can be saved as a dataURL or 
+right-clicked and saved as an image (.png to preserve transparency).
+
+If your sprite or bg dimensions change from the default you will have to edit
+heartRate.js and modify some width and height properties but it should be easy
+enough to figure out what is going on, HeartRate is less than 100 lines of code
+after all and plans to stay that way :)
+
+If you do end up making your own theme, drop me a message, I would love to see it.
+Theme support might be a cool feature to add.
+
+re,
+Corban
