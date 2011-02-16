@@ -108,7 +108,8 @@
         heartRate.monitor(2, 2);
 
         fill(40, 40, 40);
-        ctx.fillText(flock.birds.length + " particles", 730, 14);
+        ctx.fillText("Particles: " + flock.birds.length, 710, 14);
+        ctx.fillText("Collisions: " + Math.round(flock.collisions / 1000) * 1000, 710, 30);
       }
   
       function mouseClicked() {
@@ -122,9 +123,11 @@
       function Flock() {
         this.birds = [];
         this.tilespace = new TileSpace(width, height, 50);
+        this.collisions = 0;
       }
   
       Flock.prototype.run = function() {    
+        this.collisions = 0;
         for (var i = 0; i < this.birds.length; i++) {
           this.birds[i].run(this.birds); // Passing entire list of birds to each bird
         }
@@ -194,6 +197,8 @@
                 alignmentCount++;
               }
             }
+            
+            flock.collisions++;
           }
         }
         
