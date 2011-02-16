@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--
+      
+      HeartRate, frame rate monitor and sketch.
+      Author: Corban Brook @corban
+      
+      Daniel Shiffman's flocking example ported from processing to javascript using HTML5 canvas.
+      
+      Using Vlad's mjs.js matrix and vector lib for speed
+      
+      Using Al McDonald's tile-space spacial indexing engine for improved collision optimization
+    
+    -->
+    
+    <title>HTML5 Canvas - Flocking</title>
+    <script type="text/javascript" src="mjs.js"></script>
+    <script type="text/javascript" src="tile-space.js"></script>
+    <script type="text/javascript" src="../heartrate.js"></script>
+    
+    <script type="text/javascript">
+
+      var cvs, 
+          ctx,
+          width, 
+          height,
+          mouseX = 0, 
+          mouseY = 0,
+          FPS = 50;
+  
+      document.addEventListener("DOMContentLoaded", init, false);
+
+      var requestFrame = function() {};
+
+      /* The init function creates a 2d context, runs setup and starts draw loop */
+      function init() {
+        cvs = document.getElementById("flocking");
+        ctx = cvs.getContext("2d");
+    
+        width = cvs.width, height = cvs.height;
+        
+        // Event Listeners for mouse
+        cvs.addEventListener('mouseup', mouseClicked, false);
+        cvs.addEventListener('mousemove', function(event) {
+          mouseX = event.clientX, mouseY = event.clientY;
+        }, false);
+
+        window.heartRate = new HeartRate({ context: ctx, maxFPS: FPS, path: "../" });
+
+        setup();
+        
+        function redraw() {
+          draw();
+          requestFrame();
+        }
+
+        if (typeof window.mozRequestAnimationFrame === "function") {
+          (requestFrame = function() { window.mozRequestAnimationFrame(redraw); })();
+        } else if (typeof window.webkitRequestAnimationFrame === "function") {
+          (requestFrame = function() { window.webkitRequestAnimationFrame(redraw); })();
+        } else {
+          window.setInterval(redraw, 1000 / FPS);
+        } 
+      }
+
+      function line(x1, y1, x2, y2) {
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.closePath();
+      }
+
+      function stroke(r, g, b, a) {
+        var prefix = a === undefined ? 'rgb(' : 'rgba(';
+        ctx.strokeStyle = prefix + Array.prototype.slice.call(arguments).join(",") + ')';
+      }
+
+      function fill(r, g, b, a) {
+        var prefix = a === undefined ? 'rgb(' : 'rgba(';
+        ctx.fillStyle = prefix + Array.prototype.slice.call(arguments).join(",") + ')';
+      }
+      
+      //---------------------------------------------------------------------------
+
+      var HowManyBirdsToStart = 100;
+  
+      var flock;
+      var skip = 1;
+
+      function setup() {
+        flock = new Flock();
+    
+        // Add initial flock of birds into the system
+        for (var i = 0; i < HowManyBirdsToStart; i++) {
+          flock.addBird(new Bird(V3.$(width/2, height/2, 0), 2, 0.05, flock));
+        }
+      }
+
+      function draw() {
+        // Clear background
+        fill(240, 240, 240, 0.5);
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+        
+        flock.run();
+        
+        heartRate.monitor(2, 2);
+
+        fill(40, 40, 40);
+        ctx.fillText(flock.birds.length + " particles", 730, 14);
+      }
+  
+      function mouseClicked() {
+        var addThisMuchMore = 100;
+        
+        for (var i = 0; i < addThisMuchMore; i++) {
+          flock.addBird(new Bird(V3.$(mouseX, mouseY, 0), 2, 0.05, flock));
+        }        
+      }
+  
+      function Flock() {
+        this.birds = [];
+        this.tilespace = new TileSpace(width, height, 50);
+      }
+  
+      Flock.prototype.run = function() {    
+        for (var i = 0; i < this.birds.length; i++) {
+          this.birds[i].run(this.birds); // Passing entire list of birds to each bird
+        }
+      };
+  
+      Flock.prototype.addBird = function(bird) {
+        this.birds.push(bird);
+        this.tilespace.add(bird);
+      };
+  
+      function Bird(loc, maxSpeed, maxForce, parent) {
+        this.loc      = V3.clone(loc);
+        this.vel      = V3.$(Math.random() * 2 - 1, Math.random() * 2 - 1, 0);
+        this.acc      = V3.$(0, 0, 0);
+    
+        this.r        = 5;
+        this.w        = 25;
+        this.h        = 25;
+        this.maxSpeed = maxSpeed;
+        this.maxForce = maxForce;
+        this.parent   = parent;
+      }
+
+      Bird.prototype.run = function() {
+        this.flock();
+        this.update();
+        this.borders();
+        this.render();
+      };
+     
+      var separation = V3.$(0, 0, 0);
+      var alignment  = V3.$(0, 0, 0);
+      var cohesion   = V3.$(0, 0, 0);
+      
+      var diff = V3.$();
+      
+      var neighborDistance = 2500; // 50 squared
+      var desiredSeparation = 625; // 25 squared
+
+      Bird.prototype.flock = function() {        
+        V3.set(separation, 0, 0, 0);
+        V3.set(alignment, 0, 0, 0);
+        V3.set(cohesion, 0, 0, 0);
+                
+        var separationCount = 0, alignmentCount = 0;
+
+        // Get a list of all tiles this bird is in
+        for (var i = 0, imax = this.tiles.length; i < imax; i++) {
+          // Get a list of all other birds in this tile
+          for (var j = 0, jmax = this.tiles[i].objects.length; j < jmax; j++) {
+            ib = this.tiles[i].objects[j];
+          
+            var d = V3.distanceSquared(this.loc, ib.loc);
+            if (d > 0) {
+              if (d < desiredSeparation) {
+                V3.sub(this.loc, ib.loc, diff);
+                V3.normalize(diff, diff);
+                V3.scale(diff, 1/Math.sqrt(d), diff);
+                V3.add(separation, diff, separation);
+                separationCount++;
+              }
+          
+              if (d < neighborDistance) {
+                V3.add(alignment, ib.vel, alignment);
+            
+                V3.add(cohesion, ib.loc, cohesion);
+                alignmentCount++;
+              }
+            }
+          }
+        }
+        
+        if (separationCount > 0) {
+          V3.scale(separation, 1/separationCount, separation);
+          V3.scale(separation, 2.0, separation); // weight separation
+          
+          V3.add(this.acc, separation, this.acc);
+        }
+        
+        if (alignmentCount > 0) {
+          V3.scale(alignment, 1/alignmentCount, alignment);
+          V3.limit(alignment, this.maxForce, alignment);
+          
+          V3.scale(cohesion, 1/alignmentCount, cohesion);
+          this.steer(cohesion, false);
+          
+          V3.add(this.acc, alignment, this.acc);
+          V3.add(this.acc, cohesion, this.acc);
+        }
+      };
+  
+      Bird.prototype.update = function() {
+        // Update velocity
+        V3.add(this.vel, this.acc, this.vel);
+    
+        // Limit speed
+        V3.limit(this.vel, this.maxSpeed, this.vel);
+        V3.add(this.loc, this.vel, this.loc);
+        
+        // Reset acceleration to zero
+        V3.set(this.acc, 0, 0, 0);
+        
+        this.parent.tilespace.move(this);
+      };
+
+      var steer = V3.$();
+      var desired = V3.$();
+
+      Bird.prototype.steer = function(target, slowDown) {
+        V3.set(steer, 0, 0, 0);
+        V3.sub(target, this.loc, desired);
+        
+        var d = V3.length(desired);
+        
+        if (d > 0) {
+          V3.normalize(desired, desired);
+        
+          if (slowDown && d < 100) {
+            V3.scale(desired, this.maxSpeed*(d/100), desired);
+          } else {
+            V3.scale(desired, this.maxSpeed, desired);
+          }
+          
+          V3.sub(desired, this.vel, steer);
+          V3.limit(steer, this.maxForce, steer);
+        }
+        
+        V3.set(target, steer);
+      };
+  
+      Bird.prototype.borders = function() {
+        var r = this.r, loc = this.loc;
+
+        if (loc[0] < -r)         { loc[0] = width + r; }
+        if (loc[1] < -r)         { loc[1] = height + r; }
+        if (loc[0] > width + r)  { loc[0] = -r; }
+        if (loc[1] > height + r) { loc[1] = -r; }
+      };
+  
+      Bird.prototype.render = function() {
+        var theta = V3.heading2D(this.vel) + Math.PI/2;
+        ctx.save(); // push matrix
+          ctx.translate(this.loc[0], this.loc[1]);
+          ctx.rotate(theta);
+          line(0, this.r, 0, 0);
+        ctx.restore(); // pop matrix
+      };
+    </script>
+  </head>
+  <body>
+    <canvas id="flocking" width="800" height="600"></canvas>
+    <p>Click to add more particles. Push your browser to the limit. -- @corban</p>
+  </body>
+</html>
