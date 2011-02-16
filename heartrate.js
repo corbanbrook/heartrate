@@ -78,7 +78,13 @@ HeartRate.prototype.monitor = function(x, y) {
         var plot1 = 25 - this.timeline[i] / this.maxFPS * 20, 
             plot2 = 25 - this.timeline[i+1] / this.maxFPS * 20;
                         
-        isNaN(plot1) || line(i * plotScale + 64, plot1, (i+1) * plotScale + 64, plot2);
+        if (!isNaN(plot1)) { 
+          ctx.beginPath();
+            ctx.moveTo(i * plotScale + 64, plot1);
+            ctx.lineTo((i+1) * plotScale + 64, plot2);
+            ctx.stroke();
+          ctx.closePath();
+        }
       }
     
       // Text
