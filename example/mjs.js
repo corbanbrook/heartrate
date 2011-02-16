@@ -151,10 +151,16 @@ if (MJS_FLOAT_ARRAY_TYPE == Array) {
 V3.u = V3.x;
 V3.v = V3.y;
 
-V3.set = function V3_set(a, x, y, z) {
-  a[0] = x;
-  a[1] = y;
-  a[2] = z;
+V3.set = function V3_set(a, v, y, z) {
+  if (arguments.length === 2) {
+    a[0] = v[0];
+    a[1] = v[1];
+    a[2] = v[2];
+  } else {
+    a[0] = v;
+    a[1] = y;
+    a[2] = z;
+  }
 };
 
 /*

@@ -8,16 +8,12 @@
       
       Daniel Shiffman's flocking example ported from processing to javascript using HTML5 canvas.
       
-      THIRD PARTY LIBS
-      
-      Vlad's mjs.js matrix and vector lib for speed
-      Al McDonald's tile-space lib for optimized particle checking 
+      Using Vlad's mjs.js matrix and vector lib for speed
     
     -->
     
     <title>HTML5 Canvas - Flocking</title>
     <script type="text/javascript" src="mjs.js"></script>
-    <script type="text/javascript" src="tile-space.js"></script>
     <script type="text/javascript" src="../heartrate.js"></script>
     
     <script type="text/javascript">
@@ -47,9 +43,8 @@
           mouseX = event.clientX, mouseY = event.clientY;
         }, false);
 
-        // Load HeartRate FPS monitor
         window.heartRate = new HeartRate({ context: ctx, maxFPS: FPS, path: "../" });
-        
+
         setup();
         
         function redraw() {
@@ -66,7 +61,6 @@
         } 
       }
 
-      
       function line(x1, y1, x2, y2) {
         ctx.beginPath();
         ctx.moveTo(x1, y1);
@@ -87,7 +81,7 @@
       
       //---------------------------------------------------------------------------
 
-      var BIRD_TOTAL = 100;
+      var HowManyBirdsToStart = 100;
   
       var flock;
       var skip = 1;
@@ -96,8 +90,8 @@
         flock = new Flock();
     
         // Add initial flock of birds into the system
-        for (var i = 0; i < BIRD_TOTAL; i++) {
-          flock.addBird(new Bird(flock.birds.length, V3.$(width/2, height/2, 0), 2, 0.05));
+        for (var i = 0; i < HowManyBirdsToStart; i++) {
+          flock.addBird(new Bird(V3.$(width/2, height/2, 0), 2, 0.05));
         }
       }
 
@@ -115,161 +109,99 @@
       }
   
       function mouseClicked() {
-        // Add 50 more birds under your mouse
-        for (var i = 0; i < BIRD_TOTAL; i++) {
-          flock.addBird(new Bird(flock.birds.length, V3.$(mouseX, mouseY, 0), 2, 0.05));
-        }
+        var addThisMuchMore = 100;
+        
+        for (var i = 0; i < addThisMuchMore; i++) {
+          flock.addBird(new Bird(V3.$(mouseX, mouseY, 0), 2, 0.05));
+        }        
       }
   
       function Flock() {
         this.birds = [];
-        
-        // Load TileSpace for optimized particle collision checking
-        this.tilespace = new TileSpace(0, 0, width, height, 50);
       }
-      
-      Flock.prototype.addBird = function(bird) {
-        this.birds.push(bird);
-        this.tilespace.add(bird);
-      };
   
       Flock.prototype.run = function() {    
         for (var i = 0; i < this.birds.length; i++) {
           this.birds[i].run(this.birds); // Passing entire list of birds to each bird
         }
       };
-
   
-      function Bird(index, loc, maxSpeed, maxForce) {
-        this.index    = index;
+      Flock.prototype.addBird = function(bird) {
+        this.birds.push(bird);
+      };
+  
+      function Bird(loc, maxSpeed, maxForce) {
         this.loc      = V3.clone(loc);
         this.vel      = V3.$(Math.random() * 2 - 1, Math.random() * 2 - 1, 0);
         this.acc      = V3.$(0, 0, 0);
     
         this.r        = 5;
-        this.w        = 50; // area of influence
-        this.h        = 50; 
         this.maxSpeed = maxSpeed;
         this.maxForce = maxForce;
       }
 
-      Bird.prototype.run = function() {
-        this.flock();
-        this.borders();
+      Bird.prototype.run = function(birds) {
+        this.flock(birds);
         this.update();
+        this.borders();
         this.render();
       };
+     
+      var separation = V3.$(0, 0, 0);
+      var alignment  = V3.$(0, 0, 0);
+      var cohesion   = V3.$(0, 0, 0);
+      
+      var diff = V3.$();
+      
+      var neighborDistance = 2500; // 50 squared
+      var desiredSeparation = 625; // 25 squared
 
-      Bird.prototype.flock = function() {
-        var separation = V3.$(0, 0, 0);
-        var alignment = V3.$(0, 0, 0);
-        var cohesion = V3.$(0, 0, 0);
-        
-        var sCount = 0, count = 0;
-        var diff = V3.$();
-        
-        var neighborDistance = 50; // 50 squared
-        var desiredSeparation = 25; // 25 squared
-        
-        var ib, d, indexIds = [];
-        
-        for (var i in this.tiles) {
-          for (var j in this.tiles[i].objects) {
-            ib = this.tiles[i].objects[j];
-            
-            if (indexIds.indexOf(ib.index) === -1) {
-              indexIds.push(ib.index);
-            } else {
-              //Iterating over object more than once
-              continue;
+      Bird.prototype.flock = function(birds) {        
+        V3.set(separation, 0, 0, 0);
+        V3.set(alignment, 0, 0, 0);
+        V3.set(cohesion, 0, 0, 0);
+                
+        var separationCount = 0, alignmentCount = 0;
+
+        for(var i = 0, len = birds.length; i < len; i ++) {
+          var ib = birds[i];
+          
+          var d = V3.distanceSquared(this.loc, ib.loc);
+          if (d > 0) {
+            if (d < desiredSeparation) {
+              V3.sub(this.loc, ib.loc, diff);
+              V3.normalize(diff, diff);
+              V3.scale(diff, 1/Math.sqrt(d), diff);
+              V3.add(separation, diff, separation);
+              separationCount++;
             }
+          
+            if (d < neighborDistance) {
+              V3.add(alignment, ib.vel, alignment);
             
-            if (ib.index !== this.index) {
-              d = V3.distance(this.loc, ib.loc);
-              if (d > 0  && d < desiredSeparation) {
-                V3.sub(this.loc, ib.loc, diff);
-                V3.normalize(diff, diff);
-                V3.scale(diff, 1/d, diff);
-                V3.add(separation, diff, separation);
-                sCount++;
-              }
-
-              if (d > 0 && d < neighborDistance) {
-                V3.add(alignment, ib.vel, alignment);
-
-                V3.add(cohesion, ib.loc, cohesion);
-                count++;
-              }
+              V3.add(cohesion, ib.loc, cohesion);
+              alignmentCount++;
             }
           }
         }
         
-        if (sCount > 0) {
-          V3.scale(separation, 1/sCount, separation);
+        if (separationCount > 0) {
+          V3.scale(separation, 1/separationCount, separation);
+          V3.scale(separation, 2.0, separation); // weight separation
+          
+          V3.add(this.acc, separation, this.acc);
         }
         
-        if (count > 0) {
-          V3.scale(alignment, 1/count, alignment);
+        if (alignmentCount > 0) {
+          V3.scale(alignment, 1/alignmentCount, alignment);
           V3.limit(alignment, this.maxForce, alignment);
           
-          V3.scale(cohesion, 1/count, cohesion);
-          cohesion = this.steer(cohesion, false);
-        }
-        
-        V3.scale(separation, 2.0, separation); // weight separation
-        
-        V3.add(this.acc, separation, this.acc);
-        V3.add(this.acc, alignment, this.acc);
-        V3.add(this.acc, cohesion, this.acc);
-
-        /*
-        var separation = V3.$(0, 0, 0);
-        var alignment = V3.$(0, 0, 0);
-        var cohesion = V3.$(0, 0, 0);
-        
-        var sCount = 0, count = 0;
-        var diff = V3.$();
-        
-        var neighborDistance = 2500; // 50 squared
-        var desiredSeparation = 625; // 25 squared
-        
-        
-        for(var i = heartRate.frameCount % skip, len = birds.length; i < len; i += skip) {
-          var d = V3.distanceSquared(this.loc, birds[i].loc);
-          if (d > 0  && d < desiredSeparation) {
-            V3.sub(this.loc, birds[i].loc, diff);
-            V3.normalize(diff, diff);
-            V3.scale(diff, 1/Math.sqrt(d), diff);
-            V3.add(separation, diff, separation);
-            sCount++;
-          }
+          V3.scale(cohesion, 1/alignmentCount, cohesion);
+          this.steer(cohesion, false);
           
-          if (d > 0 && d < neighborDistance) {
-            V3.add(alignment, birds[i].vel, alignment);
-            
-            V3.add(cohesion, birds[i].loc, cohesion);
-            count++;
-          }
+          V3.add(this.acc, alignment, this.acc);
+          V3.add(this.acc, cohesion, this.acc);
         }
-        
-        if (sCount > 0) {
-          V3.scale(separation, 1/sCount, separation);
-        }
-        
-        if (count > 0) {
-          V3.scale(alignment, 1/count, alignment);
-          V3.limit(alignment, this.maxForce, alignment);
-          
-          V3.scale(cohesion, 1/count, cohesion);
-          cohesion = this.steer(cohesion, false);
-        }
-        
-        V3.scale(separation, 2.0, separation); // weight separation
-        
-        V3.add(this.acc, separation, this.acc);
-        V3.add(this.acc, alignment, this.acc);
-        V3.add(this.acc, cohesion, this.acc);
-        */
       };
   
       Bird.prototype.update = function() {
@@ -282,27 +214,15 @@
         
         // Reset acceleration to zero
         V3.set(this.acc, 0, 0, 0);
-        
-        flock.tilespace.move(this);
-      };
-  
-      Bird.prototype.seek = function(target) {
-        V3.add(this.acc, this.steer(target, false), this.acc);
-
-      };
-  
-      Bird.prototype.arrive = function(target) {
-        V3.add(this.acc, this.steer(target, true), this.acc);
       };
 
-      var desired = V3.$();
       var steer = V3.$();
+      var desired = V3.$();
 
       Bird.prototype.steer = function(target, slowDown) {
-        //var steer = V3.$(0, 0, 0);
-        //var desired = V3.sub(target, this.loc);
         V3.set(steer, 0, 0, 0);
         V3.sub(target, this.loc, desired);
+        
         var d = V3.length(desired);
         
         if (d > 0) {
@@ -318,7 +238,7 @@
           V3.limit(steer, this.maxForce, steer);
         }
         
-        return steer;
+        V3.set(target, steer);
       };
   
       Bird.prototype.borders = function() {
