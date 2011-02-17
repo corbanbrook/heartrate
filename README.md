@@ -1,33 +1,40 @@
-            HeartRate (an fps monitor for HTML5 canvas demos) 
+HeartRate 
+=========
 
-                      Author: Corban Brook @corban
-                3D Modelling: Tomasz Dysinkski @bunnybones
+#### an fps monitor for HTML5 canvas demos ####
 
 
-View a LIVE Demo: http://weare.buildingsky.net/heartrate/example/flocking.html
+*Author:* Corban Brook [@corban](http://twitter.com/corban)
+*3D Modelling:* Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones]
+
+[View the LIVE Demo!](http://weare.buildingsky.net/heartrate/example/flocking.html)
 
 HeartRate is a cute fps calculator and monitor you can *EASILY* add to your
 HTML5 Canvas demos. HeartRate intends to be aesthetically rich and customizable
-yet light on CPU cycles. It is composed of 3 parts: an animated icon, fps text
-display, and a line graph.
+yet light on CPU cycles. It is composed of 3 parts: 
 
-The idea was taken from the wonderful @mrdoob's Stats.js available on github at
-https://github.com/mrdoob/stats.js I noticed two things, the fancy meter seemed
-to add a lot of aesthetic value to the demos and some people were starting to
-use his meter on their demos too. So why not contribute another fancy meter to
-the HTML5 demoscene?
+* an animated icon, 
+* fps text display, 
+* and a line graph.
 
+![20110217-x4kdwt4rnn4rr6ncrwr2gkbmyk.jpg](https://img.skitch.com/20110217-x4kdwt4rnn4rr6ncrwr2gkbmyk.jpg)
 
-THANKS 
+The idea was taken from the wonderful [@mrdoob](http://twitter.com/mrdoob)'s
+[Stats.js](https://github.com/mrdoob/stats.js) available on github. I noticed
+two things, the fancy meter seemed to add a lot of aesthetic value to the demos
+and some people were starting to use his meter on their demos too. So why not
+contribute another fancy meter to the HTML5 demoscene?
 
-After showing Tomasz Dysinkski (@bunnybones)  my initial design he offered to donate 20 mins
+### THANKS ###
+
+After showing Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones)  my initial design he offered to donate 20 mins
 of his time and quickly modelled up a 3d rotating heart. I think it looks
 great, Thank you!
 
-Bobby Richter (@secretrobotron) helped optimize the flocking demo and find bugs.
+Bobby Richter [@secretrobotron](http://twitter.com/secretrobotron) helped optimize the flocking demo and find bugs.
 
 
-USAGE
+### USAGE ###
 
 Using HeartRate is easy, simply add it to the draw loop you wish to monitor.
 
@@ -60,7 +67,7 @@ If you wish you can use HeartRate without canvas to simply calculate fps and fra
   }
 
 
-CUTOMIZATION
+### CUTOMIZATION ###
 
 Customizing the theme of HeartRate is dead simple. HeartRate loads 2 images:
 bg.png and spritestrip.png, they along with spritestrip.html (a sprite strip

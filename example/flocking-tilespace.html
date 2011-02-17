@@ -94,7 +94,7 @@
     
         // Add initial flock of birds into the system
         for (var i = 0; i < HowManyBirdsToStart; i++) {
-          flock.addBird(new Bird(V3.$(width/2, height/2, 0), 2, 0.05, flock));
+          flock.addBird(new Bird(V3.$(width/2, height/2, 0), 2, 0.05, flock, flock.birds.length));
         }
       }
 
@@ -116,13 +116,13 @@
         var addThisMuchMore = 100;
         
         for (var i = 0; i < addThisMuchMore; i++) {
-          flock.addBird(new Bird(V3.$(mouseX, mouseY, 0), 2, 0.05, flock));
+          flock.addBird(new Bird(V3.$(mouseX, mouseY, 0), 2, 0.05, flock, flock.birds.length));
         }        
       }
   
       function Flock() {
         this.birds = [];
-        this.tilespace = new TileSpace(width, height, 50);
+        this.tilespace = new TileSpace(width, height, 100);
         this.collisions = 0;
       }
   
@@ -138,20 +138,23 @@
         this.tilespace.add(bird);
       };
   
-      function Bird(loc, maxSpeed, maxForce, parent) {
+      function Bird(loc, maxSpeed, maxForce, parent, index) {
         this.loc      = V3.clone(loc);
         this.vel      = V3.$(Math.random() * 2 - 1, Math.random() * 2 - 1, 0);
         this.acc      = V3.$(0, 0, 0);
     
+        this.index    = index;
         this.r        = 5;
-        this.w        = 25;
-        this.h        = 25;
+        this.w        = 50;
+        this.h        = 50;
         this.maxSpeed = maxSpeed;
         this.maxForce = maxForce;
         this.parent   = parent;
+        this.checkedIndex = null;
       }
 
       Bird.prototype.run = function() {
+        this.checkedBy = null;
         this.flock();
         this.update();
         this.borders();
@@ -173,14 +176,21 @@
         V3.set(cohesion, 0, 0, 0);
                 
         var separationCount = 0, alignmentCount = 0;
-
+        
         // Get a list of all tiles this bird is in
         for (var i = 0, imax = this.tiles.length; i < imax; i++) {
           // Get a list of all other birds in this tile
           for (var j = 0, jmax = this.tiles[i].objects.length; j < jmax; j++) {
             ib = this.tiles[i].objects[j];
-          
+            
+            if (ib.checkedIndex !== this.index && ib.index !== this.index) {
+              ib.checkedIndex = this.index;
+            } else {
+              continue;
+            }
+            
             var d = V3.distanceSquared(this.loc, ib.loc);
+            
             if (d > 0) {
               if (d < desiredSeparation) {
                 V3.sub(this.loc, ib.loc, diff);
@@ -274,13 +284,17 @@
         ctx.save(); // push matrix
           ctx.translate(this.loc[0], this.loc[1]);
           ctx.rotate(theta);
-          line(0, this.r, 0, 0);
+          ctx.beginPath();
+          ctx.moveTo(0, this.r);
+          ctx.lineTo(0, 0);
+          ctx.stroke();
+          ctx.closePath();
         ctx.restore(); // pop matrix
       };
     </script>
   </head>
   <body>
-    <canvas id="flocking" width="800" height="600"></canvas>
+    <canvas id="flocking" width="900" height="600"></canvas>
     <p>Click to add more particles. Push your browser to the limit. -- @corban</p>
   </body>
 </html>
