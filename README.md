@@ -5,7 +5,7 @@ HeartRate
 
 
 **Author:** Corban Brook [@corban](http://twitter.com/corban)
-**3D Modelling:** Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones]
+**3D Modelling:** Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones)
 
 [View the LIVE Demo!](http://weare.buildingsky.net/heartrate/example/flocking.html)
 
@@ -84,6 +84,3 @@ after all and plans to stay that way :)
 
 If you do end up making your own theme, drop me a message, I would love to see it.
 Theme support might be a cool feature to add.
-
-re,
-Corban
