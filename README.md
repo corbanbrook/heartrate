@@ -4,8 +4,8 @@ HeartRate
 #### an fps monitor for HTML5 canvas demos ####
 
 
-*Author:* Corban Brook [@corban](http://twitter.com/corban)
-*3D Modelling:* Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones]
+**Author:** Corban Brook [@corban](http://twitter.com/corban)
+**3D Modelling:** Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones]
 
 [View the LIVE Demo!](http://weare.buildingsky.net/heartrate/example/flocking.html)
 
@@ -20,51 +20,50 @@ yet light on CPU cycles. It is composed of 3 parts:
 ![20110217-x4kdwt4rnn4rr6ncrwr2gkbmyk.jpg](https://img.skitch.com/20110217-x4kdwt4rnn4rr6ncrwr2gkbmyk.jpg)
 
 The idea was taken from the wonderful [@mrdoob](http://twitter.com/mrdoob)'s
-[Stats.js](https://github.com/mrdoob/stats.js) available on github. I noticed
-two things, the fancy meter seemed to add a lot of aesthetic value to the demos
-and some people were starting to use his meter on their demos too. So why not
+**Stats.js** available on [github](https://github.com/mrdoob/stats.js). I noticed
+the fancy meter seemed to add a lot of aesthetic value to the demos. So why not
 contribute another fancy meter to the HTML5 demoscene?
 
 ### THANKS ###
 
-After showing Tomasz Dysinkski [@bunnybones](http://twitter.com/bunnybones)  my initial design he offered to donate 20 mins
+After showing [Tomasz Dysinkski](http://twitter.com/bunnybones)  my initial design he offered to donate 20 mins
 of his time and quickly modelled up a 3d rotating heart. I think it looks
 great, Thank you!
 
-Bobby Richter [@secretrobotron](http://twitter.com/secretrobotron) helped optimize the flocking demo and find bugs.
+[Bobby Richter](http://twitter.com/secretrobotron) helped optimize the flocking demo and find bugs.
 
 
 ### USAGE ###
 
 Using HeartRate is easy, simply add it to the draw loop you wish to monitor.
 
-  var FPS = 50;
+    var FPS = 50;
 
-  var heartRate = new HeartRate({{context: ctx, maxFPS: FPS, path: "./heartrate"}); 
+    var heartRate = new HeartRate({{context: ctx, maxFPS: FPS, path: "./heartrate"}); 
 
-  window.setInterval(draw, 1000/FPS);
-  
-  function draw() {
-    heartRate.monitor(10, 10); // calculates FPS and renders HeartRate monitor on canvas x, y position
+    window.setInterval(draw, 1000/FPS);
+    
+    function draw() {
+      heartRate.monitor(10, 10); // calculates FPS and renders HeartRate monitor on canvas x, y position
 
-    //..
-  }
+      //..
+    }
 
 If you wish you can use HeartRate without canvas to simply calculate fps and frameCount.
 
-  var FPS = 50;
+    var FPS = 50;
 
-  var heartRate = new HeartRate(); 
+    var heartRate = new HeartRate(); 
 
-  window.setInterval(draw, 1000/FPS);
-  
-  function draw() {
-    heartRate.calculate(); // calculates FPS in headless mode
+    window.setInterval(draw, 1000/FPS);
     
-    console.log(heartRate.frameRate + " " + heartRate.frameCount);
+    function draw() {
+      heartRate.calculate(); // calculates FPS in headless mode
+      
+      console.log(heartRate.frameRate + " " + heartRate.frameCount);
 
-    //..
-  }
+      //..
+    }
 
 
 ### CUTOMIZATION ###
